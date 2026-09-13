@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.subject.name }} Exam - Question Paper{% endblock %}
+
+{% block head_extra %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-3">
+    <!-- Top Header Sticky Exam Panel -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-dark text-white p-3">
+        <div class="row align-items-center g-3">
+            <div class="col-md-4">
+                <span class="badge bg-primary px-3 py-1 rounded-pill mb-1">{{ exam.subject.name }}</span>
+                <h5 class="fw-bold mb-0 text-truncate">{{ exam.exam_code }}</h5>
+                <small class="text-white-50">{{ student.name }} (Roll: {{ student.roll_number }})</small>
+            </div>
+            <div class="col-md-4 text-md-center">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-dark-subtle border border-secondary border-opacity-50">
+                    <span class="badge bg-success-subtle text-success-emphasis rounded-circle p-2" id="answeredBadgeCount">0</span> Answered
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-circle p-2 ms-2" id="unansweredBadgeCount">{{ questions|length }}</span> Unanswered
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="timer-box d-inline-flex align-items-center gap-2 bg-danger text-white px-4 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-stopwatch-fill fs-4 animate-pulse"></i>
+                    <div>
+                        <small class="d-block fs-8 text-uppercase tracking-wider opacity-75">Time Remaining</small>
+                        <span class="fw-bold fs-5 font-monospace" id="timerDisplay">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Question Display Area -->
+        <div class="col-lg-8 col-xl-9">
+            <form id="examForm" method="POST" action="{{ url_for('exam.submit_exam', token=exam.exam_token) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                {% for q in questions %}
+                    <div class="question-card card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white {% if not loop.first %}d-none{% endif %}" id="questionCard_{{ q.order }}" data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                            <span class="badge bg-primary-soft text-primary fs-6 px-3 py-2 rounded-pill fw-bold">
+                                Question {{ q.order }} of {{ questions|length }}
+                            </span>
+                            <span class="text-muted fs-7"><i class="bi bi-check-circle me-1 text-success"></i> 1 Mark</span>
+                        </div>
+
+                        <h4 class="fw-bold text-dark mb-4 lh-base">{{ q.text }}</h4>
+
+                        <div class="options-container d-grid gap-3 mb-4">
+                            <!-- Option A -->
+                            <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'A' %}selected-option{% endif %}">
+                                <div class="form-check d-flex align-items-center gap-3 mb-0">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="A" {% if q.selected == 'A' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">A</span>
+                                    <span class="option-text fs-6 text-dark fw-medium">{{ q.option_a }}</span>
+                                </div>
+                            </label>
+
+                            <!-- Option B -->
+                            <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'B' %}selected-option{% endif %}">
+                                <div class="form-check d-flex align-items-center gap-3 mb-0">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="B" {% if q.selected == 'B' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">B</span>
+                                    <span class="option-text fs-6 text-dark fw-medium">{{ q.option_b }}</span>
+                                </div>
+                            </label>
+
+                            <!-- Option C -->
+                            <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'C' %}selected-option{% endif %}">
+                                <div class="form-check d-flex align-items-center gap-3 mb-0">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="C" {% if q.selected == 'C' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">C</span>
+                                    <span class="option-text fs-6 text-dark fw-medium">{{ q.option_c }}</span>
+                                </div>
+                            </label>
+
+                            <!-- Option D -->
+                            <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'D' %}selected-option{% endif %}">
+                                <div class="form-check d-flex align-items-center gap-3 mb-0">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="D" {% if q.selected == 'D' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">D</span>
+                                    <span class="option-text fs-6 text-dark fw-medium">{{ q.option_d }}</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Action Bar for Previous / Next / Clear -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-secondary px-4 rounded-pill btn-prev" onclick="navigateQuestion({{ q.order - 1 }})" {% if loop.first %}disabled{% endif %}>
+                                <i class="bi bi-arrow-left me-1"></i> Previous
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none" onclick="clearSelection({{ q.order }}, {{ q.id }})">
+                                <i class="bi bi-x-circle me-1"></i> Clear Choice
+                            </button>
+
+                            {% if loop.last %}
+                                <button type="button" class="btn btn-success btn-lg px-5 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#submitConfirmModal">
+                                    <i class="bi bi-check-all me-1"></i> Submit Exam
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-primary px-4 rounded-pill btn-next" onclick="navigateQuestion({{ q.order + 1 }})">
+                                    Next <i class="bi bi-arrow-right ms-1"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- Sidebar Navigation Question Palette -->
+        <div class="col-lg-4 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 90px;">
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i> Question Palette</h6>
+                
+                <div class="d-flex justify-content-between fs-8 mb-3 p-2 bg-light rounded-3">
+                    <span class="d-flex align-items-center gap-1"><span class="palette-indicator bg-success"></span> Answered</span>
+                    <span class="d-flex align-items-center gap-1"><span class="palette-indicator bg-secondary"></span> Unanswered</span>
+                    <span class="d-flex align-items-center gap-1"><span class="palette-indicator bg-primary"></span> Current</span>
+                </div>
+
+                <div class="palette-grid d-grid gap-2 mb-4" style="grid-template-columns: repeat(5, 1fr);">
+                    {% for q in questions %}
+                        <button type="button" class="btn palette-btn rounded-3 font-monospace fw-bold {% if q.selected %}btn-success{% else %}btn-outline-secondary{% endif %} {% if loop.first %}active-current{% endif %}" id="paletteBtn_{{ q.order }}" onclick="navigateQuestion({{ q.order }})">
+                            {{ q.order }}
+                        </button>
+                    {% endfor %}
+                </div>
+
+                <button type="button" class="btn btn-gradient-primary w-100 py-3 rounded-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#submitConfirmModal">
+                    <i class="bi bi-send-check-fill me-2"></i> Submit Examination
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white p-4">
+                <h5 class="modal-title fw-bold" id="submitModalLabel"><i class="bi bi-exclamation-circle-fill text-warning me-2"></i> Confirm Final Submission</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="fs-6 text-dark mb-3">Are you sure you want to finish and submit your examination?</p>
+                <div class="p-3 bg-light rounded-3 d-flex justify-content-around text-center mb-3">
+                    <div>
+                        <small class="text-muted d-block">Answered</small>
+                        <strong class="fs-4 text-success" id="modalAnsweredCount">0</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Unanswered</small>
+                        <strong class="fs-4 text-secondary" id="modalUnansweredCount">0</strong>
+                    </div>
+                </div>
+                <small class="text-danger fw-semibold"><i class="bi bi-lock-fill me-1"></i> Once submitted, your answers will be locked and graded immediately.</small>
+            </div>
+            <div class="modal-footer p-3 bg-light">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Continue Exam</button>
+                <button type="button" class="btn btn-success rounded-pill px-4" onclick="document.getElementById('examForm').submit();">Confirm & Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentQuestionOrder = 1;
+const totalQuestions = {{ questions|length }};
+let remainingSeconds = {{ remaining_seconds }};
+const examToken = "{{ exam.exam_token }}";
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Initialize Countdown Timer
+    startTimer();
+
+    // 2. Attach radio change listeners for AJAX save
+    const radioInputs = document.querySelectorAll('.option-input');
+    radioInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const order = parseInt(this.dataset.order);
+            const qid = parseInt(this.dataset.qid);
+            const val = this.value;
+
+            // Highlight selected tile
+            const card = document.getElementById(`questionCard_${order}`);
+            card.querySelectorAll('.option-tile').forEach(t => t.classList.remove('selected-option'));
+            this.closest('.option-tile').classList.add('selected-option');
+
+            // Update palette color
+            const paletteBtn = document.getElementById(`paletteBtn_${order}`);
+            paletteBtn.classList.remove('btn-outline-secondary');
+            paletteBtn.classList.add('btn-success');
+
+            updateCounts();
+            saveAnswerViaAJAX(qid, val);
+        });
+    });
+
+    updateCounts();
+});
+
+function navigateQuestion(order) {
+    if (order < 1 || order > totalQuestions) return;
+
+    // Hide active card
+    document.getElementById(`questionCard_${currentQuestionOrder}`).classList.add('d-none');
+    document.getElementById(`paletteBtn_${currentQuestionOrder}`).classList.remove('active-current');
+
+    // Show target card
+    currentQuestionOrder = order;
+    document.getElementById(`questionCard_${currentQuestionOrder}`).classList.remove('d-none');
+    document.getElementById(`paletteBtn_${currentQuestionOrder}`).classList.add('active-current');
+}
+
+function clearSelection(order, qid) {
+    const card = document.getElementById(`questionCard_${order}`);
+    card.querySelectorAll('.option-input').forEach(i => i.checked = false);
+    card.querySelectorAll('.option-tile').forEach(t => t.classList.remove('selected-option'));
+
+    const paletteBtn = document.getElementById(`paletteBtn_${order}`);
+    paletteBtn.classList.remove('btn-success');
+    paletteBtn.classList.add('btn-outline-secondary');
+
+    updateCounts();
+    saveAnswerViaAJAX(qid, null);
+}
+
+function updateCounts() {
+    let answered = 0;
+    for (let i = 1; i <= totalQuestions; i++) {
+        const btn = document.getElementById(`paletteBtn_${i}`);
+        if (btn.classList.contains('btn-success')) answered++;
+    }
+    const unanswered = totalQuestions - answered;
+
+    document.getElementById('answeredBadgeCount').innerText = answered;
+    document.getElementById('unansweredBadgeCount').innerText = unanswered;
+    document.getElementById('modalAnsweredCount').innerText = answered;
+    document.getElementById('modalUnansweredCount').innerText = unanswered;
+}
+
+function saveAnswerViaAJAX(questionId, selectedOption) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch(`/exam/${examToken}/save-answer`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+            question_id: questionId,
+            selected_option: selectedOption
+        })
+    }).catch(err => console.error("Auto-save failed:", err));
+}
+
+function startTimer() {
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    function tick() {
+        if (remainingSeconds <= 0) {
+            timerDisplay.innerText = "00:00";
+            alert("Exam Time Expired! Submitting your answers now...");
+            document.getElementById('examForm').submit();
+            return;
+        }
+
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        remainingSeconds--;
+    }
+
+    tick();
+    setInterval(tick, 1000);
+}
+</script>
+{% endblock %}

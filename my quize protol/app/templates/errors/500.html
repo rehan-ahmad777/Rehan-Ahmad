@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}500 Internal Server Error{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="card border-0 shadow-lg rounded-4 p-5 mx-auto max-w-600 bg-white">
+        <div class="icon-shape bg-danger-subtle text-danger rounded-circle fs-1 mx-auto mb-3" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h1 class="display-5 fw-bold text-dark mb-2">500 Server Error</h1>
+        <p class="lead text-secondary mb-4">An unexpected server error occurred. Please try refreshing or return home.</p>
+        <div>
+            <a href="{{ url_for('student.index') }}" class="btn btn-primary rounded-pill px-4">Return Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Examination Result - {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- Top Header Card -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-dark text-white p-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                        <div>
+                            <span class="badge bg-success px-3 py-1 rounded-pill mb-2">Evaluation Completed</span>
+                            <h3 class="fw-bold mb-1">{{ exam.subject.name }} Official Scorecard</h3>
+                            <p class="text-white-50 mb-0">Exam Code: <strong>{{ exam.exam_code }}</strong></p>
+                        </div>
+                        <div class="mt-3 mt-md-0 text-md-end">
+                            <span class="fs-7 text-white-50 d-block">Submitted At</span>
+                            <strong class="text-white fs-7">{{ result.submitted_at.strftime('%b %d, %Y - %I:%M %p') }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- Candidate Bio Details -->
+                    <div class="row g-3 p-3 bg-light rounded-3 border mb-4">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fs-7">Candidate Name</small>
+                            <strong class="text-dark fs-6">{{ student.name }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fs-7">Roll Number</small>
+                            <strong class="text-dark fs-6">{{ student.roll_number }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block fs-7">Branch</small>
+                            <strong class="text-dark fs-6">{{ student.branch }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Performance Stats Grid -->
+                    <div class="row g-3 text-center mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <small class="text-muted d-block fs-7 fw-semibold">Score / Total</small>
+                                <h3 class="fw-bold text-dark my-1">{{ result.marks_obtained }} / {{ result.total_questions }}</h3>
+                                <span class="fs-8 text-muted">1 Mark per question</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <small class="text-muted d-block fs-7 fw-semibold">Percentage</small>
+                                <h3 class="fw-bold my-1 {% if result.percentage >= 40 %}text-success{% else %}text-danger{% endif %}">
+                                    {{ result.percentage }}%
+                                </h3>
+                                {% if result.percentage >= 40 %}
+                                    <span class="badge bg-success-subtle text-success fs-8">Passed</span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger fs-8">Needs Improvement</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <small class="text-muted d-block fs-7 fw-semibold">Correct Answers</small>
+                                <h3 class="fw-bold text-success my-1"><i class="bi bi-check-circle-fill me-1"></i> {{ result.correct_answers }}</h3>
+                                <span class="fs-8 text-muted">Gain: +{{ result.correct_answers }} Marks</span>
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <small class="text-muted d-block fs-7 fw-semibold">Wrong / Unanswered</small>
+                                <h3 class="fw-bold text-danger my-1">
+                                    {{ result.wrong_answers }} <span class="text-secondary fs-6">/ {{ result.unanswered }}</span>
+                                </h3>
+                                <span class="fs-8 text-muted">No negative marking</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question-Wise Detailed Review -->
+                    <h5 class="fw-bold mb-3"><i class="bi bi-list-check text-primary me-2"></i> Question-wise Answer Breakdown</h5>
+                    
+                    <div class="d-grid gap-3 mb-4">
+                        {% for q in reviews %}
+                            <div class="card border rounded-3 p-3 bg-white">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-dark fs-6">Question {{ q.order }}</span>
+                                    <span class="badge {{ q.status_class }} px-3 py-1 fs-7">{{ q.status }}</span>
+                                </div>
+
+                                <p class="fw-semibold text-secondary mb-3">{{ q.text }}</p>
+
+                                <div class="row g-2 fs-7">
+                                    <div class="col-sm-6">
+                                        <span class="text-muted">Your Selection:</span>
+                                        {% if q.user_choice %}
+                                            <strong class="{% if q.status == 'Correct' %}text-success{% else %}text-danger{% endif %} ms-1">
+                                                Option {{ q.user_choice }}
+                                            </strong>
+                                        {% else %}
+                                            <strong class="text-secondary ms-1">Not Attempted</strong>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-sm-6 text-sm-end">
+                                        <span class="text-muted">Correct Key:</span>
+                                        <strong class="text-success ms-1">Option {{ q.correct_option }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="text-center pt-3 border-top">
+                        <button onclick="window.print()" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                            <i class="bi bi-printer me-1"></i> Print Result
+                        </button>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('teacher.results', exam_id=exam.id) }}" class="btn btn-primary rounded-pill px-4">
+                                <i class="bi bi-arrow-left me-1"></i> Return to Teacher Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('student.index') }}" class="btn btn-primary rounded-pill px-4">
+                                <i class="bi bi-house me-1"></i> Back to Home
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
