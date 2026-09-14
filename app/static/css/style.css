@@ -1,0 +1,172 @@
+/* Global Theme Variables */
+:root {
+    --font-primary: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --dark-bg: #0f172a;
+    --light-bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+}
+
+body {
+    font-family: var(--font-primary);
+    background: var(--light-bg-gradient);
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism & Navbar */
+.bg-dark-glass {
+    background-color: rgba(15, 23, 42, 0.92) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.btn-gradient-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    transition: all 0.25s ease;
+}
+
+.btn-gradient-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+}
+
+.bg-primary-soft {
+    background-color: rgba(59, 130, 246, 0.12);
+}
+
+.max-w-600 {
+    max-width: 600px;
+}
+
+.fs-7 {
+    font-size: 0.85rem;
+}
+
+.fs-8 {
+    font-size: 0.75rem;
+}
+
+/* Subject Card Theme Styles */
+.subject-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.subject-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.card-gradient-bar {
+    height: 6px;
+    width: 100%;
+}
+
+.bg-gradient-blue { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.bg-gradient-purple { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+.bg-gradient-green { background: linear-gradient(90deg, #10b981, #34d399); }
+.bg-gradient-orange { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+.subject-icon-box {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+}
+
+.text-blue { color: #3b82f6; }
+.text-purple { color: #8b5cf6; }
+.text-green { color: #10b981; }
+.text-orange { color: #f97316; }
+
+/* Interactive Option Tiles in Exam */
+.option-tile {
+    border: 2px solid #e2e8f0 !important;
+    background-color: #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+
+.option-tile:hover {
+    border-color: #cbd5e1 !important;
+    background-color: #f8fafc;
+    transform: translateX(4px);
+}
+
+.option-tile.selected-option {
+    border-color: #3b82f6 !important;
+    background-color: rgba(59, 130, 246, 0.04);
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.option-tile.selected-option .option-prefix {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+.option-prefix {
+    min-width: 32px;
+    text-align: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Palette Indicators */
+.palette-btn {
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.palette-btn.active-current {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5) !important;
+    transform: scale(1.08);
+}
+
+.palette-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+/* Hero card styling */
+.hero-card {
+    border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.icon-shape {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

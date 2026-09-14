@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Online AI Quiz / Examination System{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light-gradient">
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark-glass sticky-top shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-gradient" href="{{ url_for('student.index') }}">
+                <i class="bi bi-cpu-fill fs-3 text-primary"></i>
+                <span class="fs-4">AI Quiz Portal</span>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-outline-info text-white rounded-pill px-3 border-info border-opacity-50 btn-sm me-2" data-bs-toggle="modal" data-bs-target="#mobileAccessModal">
+                            <i class="bi bi-phone me-1"></i> Open on Mobile
+                        </button>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{{ url_for('teacher.dashboard') }}">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{{ url_for('teacher.results') }}">
+                                <i class="bi bi-bar-chart-line me-1"></i> Class Results
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown ms-lg-2">
+                            <a class="nav-link dropdown-toggle btn btn-outline-light text-white px-3 border-secondary rounded-pill" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i> {{ current_user.name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
+                                <li class="dropdown-header">Teacher ID: {{ current_user.teacher_id }}</li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-gradient-primary rounded-pill px-4" href="{{ url_for('auth.login') }}">
+                                <i class="bi bi-shield-lock me-1"></i> Teacher Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm rounded-3 d-flex align-items-center gap-2" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                        {% elif category == 'danger' %}
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        {% elif category == 'warning' %}
+                            <i class="bi bi-exclamation-circle-fill fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Block -->
+    <main class="flex-grow-1 py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-dark text-white-50 border-top border-secondary border-opacity-25">
+        <div class="container text-center fs-7">
+            <p class="mb-0">&copy; 2026 Online AI Quiz / Examination System. Built with Flask, MySQL & Bootstrap 5.</p>
+        </div>
+    </footer>
+
+    <!-- Mobile Access Modal -->
+    <div class="modal fade" id="mobileAccessModal" tabindex="-1" aria-labelledby="mobileAccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-gradient-primary text-white p-4">
+                    <h5 class="modal-title fw-bold" id="mobileAccessModalLabel">
+                        <i class="bi bi-phone me-2"></i> Open on Mobile / Another Device
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-muted fs-7 mb-3">
+                        Connect your mobile phone or tablet to the <strong>SAME Wi-Fi or Hotspot</strong> network as this PC, then scan or type the link below:
+                    </p>
+                    
+                    <!-- QR Code Image -->
+                    <div class="p-3 bg-white d-inline-block rounded-3 border shadow-sm mb-3">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ lan_url|urlencode }}" alt="Mobile QR Code" class="img-fluid rounded" style="width: 180px; height: 180px;">
+                    </div>
+
+                    <div class="mb-3 text-start">
+                        <label class="form-label fw-bold fs-7 text-secondary">Direct Mobile URL:</label>
+                        <div class="input-group">
+                            <input type="text" id="mobileUrlInput" class="form-control font-monospace bg-light fs-7" value="{{ lan_url }}" readonly>
+                            <button class="btn btn-outline-primary" type="button" onclick="copyMobileUrl()">
+                                <i class="bi bi-clipboard me-1"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 text-start fs-7 mb-0">
+                        <i class="bi bi-info-circle-fill me-1"></i> <strong>Tip:</strong> If mobile page doesn't load, verify both devices are on the same Wi-Fi network and Windows Firewall permits Python.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0 justify-content-center p-3">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    function copyMobileUrl() {
+        const input = document.getElementById('mobileUrlInput');
+        input.select();
+        navigator.clipboard.writeText(input.value).then(() => {
+            alert('Mobile Link Copied: ' + input.value);
+        });
+    }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

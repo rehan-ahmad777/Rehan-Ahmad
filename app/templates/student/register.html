@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Student Verification - {{ exam.subject.name }} Exam{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4 text-center">
+                    <span class="badge bg-primary px-3 py-1 rounded-pill mb-2">Examination System</span>
+                    <h3 class="fw-bold mb-1">{{ exam.subject.name }} Examination</h3>
+                    <p class="text-white-50 fs-7 mb-0">Exam Code: <strong>{{ exam.exam_code }}</strong></p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <!-- Exam Details Overview Card -->
+                    <div class="row g-2 text-center p-3 bg-light rounded-3 border mb-4">
+                        <div class="col-4">
+                            <small class="text-muted d-block fs-7">Total Questions</small>
+                            <strong class="text-dark">{{ exam.total_questions }} MCQs</strong>
+                        </div>
+                        <div class="col-4 border-start border-end">
+                            <small class="text-muted d-block fs-7">Total Marks</small>
+                            <strong class="text-dark">{{ exam.total_marks }} Marks</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block fs-7">Duration</small>
+                            <strong class="text-dark">{{ exam.duration }} Mins</strong>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill text-primary me-2"></i> Enter Student Details</h5>
+                    <p class="text-muted fs-7 mb-4">Please fill in your authentic details before commencing the test. All fields are mandatory.</p>
+
+                    <form method="POST" action="{{ url_for('student.register_exam', token=exam.exam_token) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-bold">Full Name *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-secondary"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0 ps-0" id="name" name="name" placeholder="Enter your full name" value="{{ name|default('') }}" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="roll_number" class="form-label fw-bold">Roll Number *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-card-text text-secondary"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0 ps-0" id="roll_number" name="roll_number" placeholder="e.g. 2026-CS-101" value="{{ roll_number|default('') }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="branch" class="form-label fw-bold">Branch / Department *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-diagram-3 text-secondary"></i></span>
+                                <select class="form-select bg-light border-start-0 ps-0" id="branch" name="branch" required>
+                                    <option value="" disabled {% if not branch %}selected{% endif %}>Select your branch</option>
+                                    <option value="Computer Science & Engineering" {% if branch == 'Computer Science & Engineering' %}selected{% endif %}>Computer Science & Engineering</option>
+                                    <option value="Information Technology" {% if branch == 'Information Technology' %}selected{% endif %}>Information Technology</option>
+                                    <option value="Electrical Engineering" {% if branch == 'Electrical Engineering' %}selected{% endif %}>Electrical Engineering</option>
+                                    <option value="Mechanical Engineering" {% if branch == 'Mechanical Engineering' %}selected{% endif %}>Mechanical Engineering</option>
+                                    <option value="Civil Engineering" {% if branch == 'Civil Engineering' %}selected{% endif %}>Civil Engineering</option>
+                                    <option value="Electronics & Communication" {% if branch == 'Electronics & Communication' %}selected{% endif %}>Electronics & Communication</option>
+                                    <option value="Basic Sciences / General" {% if branch == 'Basic Sciences / General' %}selected{% endif %}>Basic Sciences / General</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                            <label class="form-check-label fs-7 text-muted" for="agreeTerms">
+                                I confirm my details are accurate and I agree to complete the exam within the allotted duration of {{ exam.duration }} minutes.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-gradient-primary w-100 py-3 rounded-3 fw-bold shadow-sm">
+                            <i class="bi bi-play-circle-fill me-2"></i> Start Examination Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

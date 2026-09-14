@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Created - {{ exam.exam_code }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden text-center">
+                <div class="card-header bg-gradient-green text-white p-4">
+                    <div class="icon-shape bg-white text-success rounded-circle fs-1 mx-auto mb-2" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">Question Paper Successfully Generated!</h3>
+                    <p class="text-white-50 mb-0">Exam Code: <strong>{{ exam.exam_code }}</strong></p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fs-7">Subject</small>
+                                <strong class="text-dark fs-6">{{ exam.subject.name }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fs-7">Total Questions</small>
+                                <strong class="text-dark fs-6">{{ exam.total_questions }} MCQs</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fs-7">Total Marks</small>
+                                <strong class="text-dark fs-6">{{ exam.total_marks }} Marks</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block fs-7">Duration</small>
+                                <strong class="text-dark fs-6">{{ exam.duration }} mins</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Section -->
+                    <div class="card bg-light border-0 rounded-4 p-4 mb-4 text-start">
+                        <div class="row align-items-center g-4">
+                            <div class="col-md-8">
+                                <h5 class="fw-bold text-dark mb-2">
+                                    <i class="bi bi-phone-vibrate text-primary me-2"></i> Share Exam with Students (Mobile & PC)
+                                </h5>
+                                <p class="text-muted fs-7 mb-3">
+                                    Use the <strong>Mobile Network Link</strong> below so students on phones or other laptops connected to the same Wi-Fi can open the quiz directly without connection errors!
+                                </p>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-success mb-1">
+                                        <i class="bi bi-wifi me-1"></i> Mobile / Network Link (Recommended for Phones):
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="text" id="lanExamUrlInput" class="form-control font-monospace bg-white border-success border-opacity-50 fs-7" value="{{ lan_exam_url }}" readonly>
+                                        <button class="btn btn-success px-3" type="button" id="copyLanBtn" onclick="copyLanLink()">
+                                            <i class="bi bi-clipboard me-1"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold fs-7 text-secondary mb-1">
+                                        <i class="bi bi-laptop me-1"></i> Local PC Link:
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" id="examUrlInput" class="form-control font-monospace bg-white fs-7" value="{{ exam_url }}" readonly>
+                                        <button class="btn btn-outline-secondary px-3" type="button" id="copyLinkBtn" onclick="copyExamLink()">
+                                            <i class="bi bi-clipboard me-1"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- QR Code Box -->
+                            <div class="col-md-4 text-center">
+                                <div class="p-3 bg-white d-inline-block rounded-3 border shadow-sm">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ lan_exam_url|urlencode }}" alt="Scan Quiz QR Code" class="img-fluid rounded" style="width: 140px; height: 140px;">
+                                </div>
+                                <small class="text-muted d-block mt-2 fs-7">
+                                    <i class="bi bi-qr-code-scan me-1"></i> Scan with Phone Camera
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="https://api.whatsapp.com/send?text={{ ('Please take the Online Quiz for ' + exam.subject.name + '. Exam Code: ' + exam.exam_code + ' - Click Link: ' + lan_exam_url)|urlencode }}" target="_blank" class="btn btn-success rounded-pill px-4 py-2.5 fw-semibold shadow-sm">
+                            <i class="bi bi-whatsapp me-2"></i> Share via WhatsApp
+                        </a>
+                        <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-dark rounded-pill px-4 py-2.5 fw-semibold">
+                            <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{{ url_for('teacher.results', exam_id=exam.id) }}" class="btn btn-outline-primary rounded-pill px-4 py-2.5 fw-semibold">
+                            <i class="bi bi-bar-chart-line me-2"></i> View Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function copyLanLink() {
+    const input = document.getElementById('lanExamUrlInput');
+    const btn = document.getElementById('copyLanBtn');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2-all me-1"></i> Copied!';
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-dark');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-dark');
+            btn.classList.add('btn-success');
+        }, 2500);
+    });
+}
+
+function copyExamLink() {
+    const input = document.getElementById('examUrlInput');
+    const btn = document.getElementById('copyLinkBtn');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2-all me-1"></i> Copied!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+        }, 2500);
+    });
+}
+</script>
+{% endblock %}

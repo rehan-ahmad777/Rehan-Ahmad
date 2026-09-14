@@ -1,0 +1,19 @@
+# Environment variables
+.env
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# SQLite local databases and instance directory files
+instance/*.db
+*.sqlite
+*.sqlite3
+
+# Environments
+.venv/
+venv/
+env/
+ENV/

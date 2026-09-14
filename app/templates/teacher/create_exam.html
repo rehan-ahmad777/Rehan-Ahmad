@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Create Question Paper - {{ subject.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('teacher.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Exam ({{ subject.name }})</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="badge bg-primary px-3 py-1 rounded-pill mb-2">Paper Generator</span>
+                            <h3 class="fw-bold mb-0">Subject: {{ subject.name }}</h3>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-white-50 d-block">Available Bank</small>
+                            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">
+                                <i class="bi bi-database-check me-1"></i> {{ available_count }} MCQs
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="alert alert-info border-0 rounded-3 mb-4 d-flex align-items-center gap-3">
+                        <i class="bi bi-info-circle-fill fs-3 text-info"></i>
+                        <div>
+                            <strong class="d-block">Rule: 1 Question = 1 Mark</strong>
+                            <span class="fs-7">Questions will be randomly sampled from the 100-question {{ subject.name }} bank and frozen permanently for this exam instance.</span>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('teacher.create_exam', subject_id=subject.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="total_questions" class="form-label fw-bold">Total Marks / Questions *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+                                    <input type="number" class="form-control form-control-lg bg-light" id="total_questions" name="total_questions" placeholder="e.g. 20" min="1" max="{{ available_count }}" value="20" required>
+                                </div>
+                                <small class="text-muted mt-1 d-block">Maximum available: {{ available_count }} questions</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="duration" class="form-label fw-bold">Exam Duration (Minutes) *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-clock-history"></i></span>
+                                    <input type="number" class="form-control form-control-lg bg-light" id="duration" name="duration" placeholder="e.g. 30" min="1" max="300" value="30" required>
+                                </div>
+                                <small class="text-muted mt-1 d-block">Allowed range: 1 - 300 minutes</small>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                <i class="bi bi-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-gradient-primary btn-lg px-5 rounded-pill shadow-sm">
+                                <i class="bi bi-gear-wide-connected me-2"></i> Generate Exam Paper & Link
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
