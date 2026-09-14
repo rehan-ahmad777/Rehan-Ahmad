@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Login - Online AI Quiz System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-gradient-dark text-white text-center p-4">
+                    <div class="icon-shape bg-primary text-white rounded-circle fs-3 mx-auto mb-2" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">Teacher Portal Login</h3>
+                    <p class="text-white-50 fs-7 mb-0">Sign in to manage subjects & create question papers</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <div class="mb-4">
+                            <label for="teacher_id" class="form-label fw-semibold">Teacher ID</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-card-heading text-secondary"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0 ps-0" id="teacher_id" name="teacher_id" placeholder="e.g. T1001" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock-fill text-secondary"></i></span>
+                                <input type="password" class="form-control bg-light border-start-0 ps-0" id="password" name="password" placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-gradient-primary w-100 py-3 rounded-3 fw-bold text-uppercase letter-spacing-1 shadow-sm">
+                            <i class="bi bi-box-arrow-in-right me-2"></i> Log In to Dashboard
+                        </button>
+                    </form>
+
+                    <div class="mt-4 p-3 bg-light rounded-3 text-center border">
+                        <small class="text-muted d-block">Default Seed Teacher Credentials:</small>
+                        <small class="fw-bold text-dark me-2">ID: <code>T1001</code></small>
+                        <small class="fw-bold text-dark">Password: <code>Teacher@123</code></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
