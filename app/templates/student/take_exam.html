@@ -37,7 +37,7 @@
     <div class="row g-4">
         <!-- Main Question Display Area -->
         <div class="col-lg-8 col-xl-9">
-            <form id="examForm" method="POST" action="{{ url_for('exam.submit_exam', token=exam.exam_token) }}">
+            <form id="examForm" method="POST" action="{{ url_for('exam.submit_exam', token=exam.exam_code) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 {% for q in questions %}
@@ -146,11 +146,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-dark text-white p-4">
-                <h5 class="modal-title fw-bold" id="submitModalLabel"><i class="bi bi-exclamation-circle-fill text-warning me-2"></i> Confirm Final Submission</h5>
+                <h5 class="modal-title fw-bold" id="submitModalLabel"><i class="bi bi-exclamation-circle-fill text-warning me-2"></i> Submit Exam</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 text-center">
-                <p class="fs-6 text-dark mb-3">Are you sure you want to finish and submit your examination?</p>
+                <p class="fs-5 fw-bold text-dark mb-3">Are you sure you want to submit your exam?</p>
                 <div class="p-3 bg-light rounded-3 d-flex justify-content-around text-center mb-3">
                     <div>
                         <small class="text-muted d-block">Answered</small>
@@ -163,9 +163,9 @@
                 </div>
                 <small class="text-danger fw-semibold"><i class="bi bi-lock-fill me-1"></i> Once submitted, your answers will be locked and graded immediately.</small>
             </div>
-            <div class="modal-footer p-3 bg-light">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Continue Exam</button>
-                <button type="button" class="btn btn-success rounded-pill px-4" onclick="document.getElementById('examForm').submit();">Confirm & Submit</button>
+            <div class="modal-footer p-3 bg-light justify-content-center gap-3">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success rounded-pill px-5 fw-bold" onclick="document.getElementById('examForm').submit();">Submit</button>
             </div>
         </div>
     </div>

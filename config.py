@@ -8,6 +8,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     RATELIMIT_STORAGE_URI = "memory://"
     
+    # Public Render deployment URL for student shareable links
+    RENDER_EXTERNAL_URL = os.getenv('RENDER_EXTERNAL_URL', 'https://rehan-ahmad-1.onrender.com')
+    PUBLIC_URL = os.getenv('PUBLIC_URL', RENDER_EXTERNAL_URL).rstrip('/')
+    
     # MySQL Database Settings
     DB_USER = os.getenv('DB_USER', 'root')
     DB_PASSWORD = os.getenv('DB_PASSWORD', 'password')

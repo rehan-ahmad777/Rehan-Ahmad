@@ -1,7 +1,7 @@
 import random
 import string
 from datetime import datetime, timedelta
-from flask import render_template, redirect, url_for, flash, request, abort, jsonify
+from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app
 from flask_login import login_required, current_user
 from app.teacher import teacher_bp
 from app.models import Subject, Question, Exam, ExamQuestion, Student, Result
@@ -10,9 +10,18 @@ from app.extensions import db
 def generate_exam_code():
     chars = string.ascii_uppercase + string.digits
     while True:
-        code = 'EXAM-' + ''.join(random.choices(chars, k=5))
+        code = ''.join(random.choices(chars, k=6))
         if not Exam.query.filter_by(exam_code=code).first():
             return code
+
+@teacher_bp.route('/login')
+def teacher_login():
+    return redirect(url_for('auth.login'))
+
+@teacher_bp.route('/logout')
+@login_required
+def teacher_logout():
+    return redirect(url_for('auth.logout'))
 
 @teacher_bp.route('/dashboard')
 @login_required
@@ -38,6 +47,20 @@ def dashboard():
         total_exams=len(teacher_exams)
     )
 
+@teacher_bp.route('/exams')
+@login_required
+def my_exams():
+    return redirect(url_for('teacher.dashboard'))
+
+@teacher_bp.route('/exam/create', methods=['GET', 'POST'])
+@login_required
+def exam_create_default():
+    # If no subject selected, default to first subject or render dashboard
+    first_subject = Subject.query.first()
+    if first_subject:
+        return redirect(url_for('teacher.create_exam', subject_id=first_subject.id))
+    flash('No subjects found in database.', 'danger')
+    return redirect(url_for('teacher.dashboard'))
 
 @teacher_bp.route('/create-exam/<int:subject_id>', methods=['GET', 'POST'])
 @login_required
@@ -64,7 +87,7 @@ def create_exam(subject_id):
             return render_template('teacher/create_exam.html', subject=subject, available_count=available_count)
 
         if total_q > available_count:
-            flash(f'Cannot select {total_q} questions. Only {available_count} available in bank.', 'danger')
+            flash(f'Only {available_count} questions are available for {subject.name}. Please enter a smaller number.', 'danger')
             return render_template('teacher/create_exam.html', subject=subject, available_count=available_count)
 
         if duration <= 0 or duration > 300:
@@ -113,41 +136,61 @@ def create_exam(subject_id):
     return render_template('teacher/create_exam.html', subject=subject, available_count=available_count)
 
 
+def get_public_exam_url(exam_code):
+    base_url = current_app.config.get('PUBLIC_URL', 'https://rehan-ahmad-1.onrender.com').rstrip('/')
+    if not base_url or 'localhost' in base_url or '127.0.0.1' in base_url:
+        base_url = 'https://rehan-ahmad-1.onrender.com'
+    if request and 'onrender.com' in request.host:
+        scheme = request.headers.get('X-Forwarded-Proto', 'https')
+        return f"{scheme}://{request.host}/exam/{exam_code}"
+    return f"{base_url}/exam/{exam_code}"
+
 @teacher_bp.route('/exam/<token>/created')
 @login_required
 def exam_created(token):
-    exam = Exam.query.filter_by(exam_token=token).first_or_404()
+    exam = Exam.query.filter((Exam.exam_token == token) | (Exam.exam_code == token)).first_or_404()
     
     # Strict Authorization check
     if exam.teacher_id != current_user.id:
         abort(403)
 
-    exam_url = url_for('student.register_exam', token=exam.exam_token, _external=True)
-    
-    import socket
-    lan_ip = '127.0.0.1'
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        lan_ip = s.getsockname()[0]
-        s.close()
-    except Exception:
-        try:
-            lan_ip = socket.gethostbyname(socket.gethostname())
-        except Exception:
-            lan_ip = '127.0.0.1'
-
-    port = request.host.split(':')[1] if ':' in request.host else '5000'
-    exam_path = url_for('student.register_exam', token=exam.exam_token)
-    lan_exam_url = f"http://{lan_ip}:{port}{exam_path}"
+    exam_url = get_public_exam_url(exam.exam_code)
 
     return render_template(
         'teacher/exam_created.html', 
         exam=exam, 
-        exam_url=exam_url, 
-        lan_exam_url=lan_exam_url,
-        lan_ip=lan_ip
+        exam_url=exam_url
     )
+
+@teacher_bp.route('/exam/<int:exam_id>/share')
+@login_required
+def share_exam_by_id(exam_id):
+    exam = Exam.query.get_or_404(exam_id)
+    if exam.teacher_id != current_user.id:
+        abort(403)
+    return redirect(url_for('teacher.exam_created', token=exam.exam_token))
+
+@teacher_bp.route('/exam/<int:exam_id>/disable', methods=['GET', 'POST'])
+@login_required
+def disable_exam(exam_id):
+    exam = Exam.query.get_or_404(exam_id)
+    if exam.teacher_id != current_user.id:
+        abort(403)
+
+    if exam.status == 'active':
+        exam.status = 'disabled'
+        flash(f'Exam {exam.exam_code} has been disabled. Students can no longer access it.', 'warning')
+    else:
+        exam.status = 'active'
+        flash(f'Exam {exam.exam_code} has been re-activated.', 'success')
+
+    db.session.commit()
+    return redirect(url_for('teacher.dashboard'))
+
+@teacher_bp.route('/exam/<int:exam_id>/results')
+@login_required
+def exam_results_by_id(exam_id):
+    return redirect(url_for('teacher.results', exam_id=exam_id))
 
 
 @teacher_bp.route('/results')

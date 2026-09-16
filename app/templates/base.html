@@ -121,18 +121,18 @@
                 </div>
                 <div class="modal-body p-4 text-center">
                     <p class="text-muted fs-7 mb-3">
-                        Connect your mobile phone or tablet to the <strong>SAME Wi-Fi or Hotspot</strong> network as this PC, then scan or type the link below:
+                        Students can open the exam link from any mobile phone, tablet, laptop, or PC with an internet connection:
                     </p>
                     
                     <!-- QR Code Image -->
                     <div class="p-3 bg-white d-inline-block rounded-3 border shadow-sm mb-3">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ lan_url|urlencode }}" alt="Mobile QR Code" class="img-fluid rounded" style="width: 180px; height: 180px;">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ public_url|urlencode }}" alt="Mobile QR Code" class="img-fluid rounded" style="width: 180px; height: 180px;">
                     </div>
 
                     <div class="mb-3 text-start">
-                        <label class="form-label fw-bold fs-7 text-secondary">Direct Mobile URL:</label>
+                        <label class="form-label fw-bold fs-7 text-secondary">Website Host URL:</label>
                         <div class="input-group">
-                            <input type="text" id="mobileUrlInput" class="form-control font-monospace bg-light fs-7" value="{{ lan_url }}" readonly>
+                            <input type="text" id="mobileUrlInput" class="form-control font-monospace bg-light fs-7" value="{{ public_url }}" readonly>
                             <button class="btn btn-outline-primary" type="button" onclick="copyMobileUrl()">
                                 <i class="bi bi-clipboard me-1"></i> Copy
                             </button>
@@ -140,7 +140,7 @@
                     </div>
 
                     <div class="alert alert-info border-0 rounded-3 text-start fs-7 mb-0">
-                        <i class="bi bi-info-circle-fill me-1"></i> <strong>Tip:</strong> If mobile page doesn't load, verify both devices are on the same Wi-Fi network and Windows Firewall permits Python.
+                        <i class="bi bi-info-circle-fill me-1"></i> <strong>Tip:</strong> Share the generated unique exam code URL (e.g. <code>/exam/8F4K2P</code>) with your students.
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 justify-content-center p-3">

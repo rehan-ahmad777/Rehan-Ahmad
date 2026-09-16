@@ -14,10 +14,18 @@ def create_app(config_name=None):
     # Ensure instance directory exists
     os.makedirs(app.instance_path, exist_ok=True)
 
-    # If USE_SQLITE_FALLBACK is enabled and no explicit DATABASE_URL is set
-    if app.config.get('USE_SQLITE_FALLBACK') and not os.getenv('DATABASE_URL'):
-        sqlite_file = os.path.join(app.instance_path, 'online_quiz.db')
-        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{sqlite_file}"
+    # If USE_SQLITE_FALLBACK is enabled, test DB connection and fallback to SQLite if MySQL fails
+    if app.config.get('USE_SQLITE_FALLBACK'):
+        try:
+            from sqlalchemy import create_engine
+            db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+            if db_uri and not db_uri.startswith('sqlite'):
+                engine = create_engine(db_uri, connect_args={'connect_timeout': 2})
+                conn = engine.connect()
+                conn.close()
+        except Exception as e:
+            sqlite_file = os.path.join(app.instance_path, 'online_quiz.db')
+            app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{sqlite_file}"
 
 
     # Initialize extensions
@@ -43,26 +51,19 @@ def create_app(config_name=None):
     app.register_blueprint(student_bp)
     app.register_blueprint(exam_bp)
 
-    # Register Context Processors for LAN & Mobile Access
+    # Run database schema check & auto-migration
+    from app.db_migration import init_and_migrate_db
+    init_and_migrate_db(app)
+
+    # Register Context Processor for Public Render Access
     @app.context_processor
     def inject_network_info():
-        import socket
-        lan_ip = '127.0.0.1'
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            lan_ip = s.getsockname()[0]
-            s.close()
-        except Exception:
-            try:
-                lan_ip = socket.gethostbyname(socket.gethostname())
-            except Exception:
-                lan_ip = '127.0.0.1'
-        port = os.getenv('FLASK_PORT', '5000')
+        public_url = app.config.get('PUBLIC_URL', 'https://rehan-ahmad-1.onrender.com').rstrip('/')
+        if 'localhost' in public_url or '127.0.0.1' in public_url:
+            public_url = 'https://rehan-ahmad-1.onrender.com'
         return {
-            'lan_ip': lan_ip,
-            'lan_port': port,
-            'lan_url': f"http://{lan_ip}:{port}"
+            'public_url': public_url,
+            'lan_url': public_url
         }
 
     # Register Custom Error Handlers

@@ -94,7 +94,7 @@ class QuizSystemTestCase(unittest.TestCase):
         }, follow_redirects=True)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Question Paper Successfully Generated!', response.data)
+        self.assertIn(b'Exam created successfully!', response.data)
 
         # Verify DB exam record
         exam = Exam.query.filter_by(subject_id=self.subject.id).first()
@@ -119,7 +119,7 @@ class QuizSystemTestCase(unittest.TestCase):
             'duration': '15'
         }, follow_redirects=True)
 
-        self.assertIn(b'Cannot select 50 questions', response.data)
+        self.assertIn(b'Only 20 questions are available', response.data)
 
     # 3. STUDENT REGISTRATION & EXAM SESSION TESTS
     def test_student_registration_mandatory_fields(self):

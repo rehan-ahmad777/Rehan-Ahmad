@@ -75,19 +75,20 @@ def process_and_finalize_submission(student, exam):
 
 
 @exam_bp.route('/exam/<token>/take')
+@exam_bp.route('/exam/<token>/start')
 def take_exam(token):
-    exam = Exam.query.filter_by(exam_token=token).first_or_404()
+    exam = Exam.query.filter((Exam.exam_code == token) | (Exam.exam_token == token)).first_or_404()
     student_id = session.get('student_id')
 
     if not student_id:
         flash('Please register your student details before starting the exam.', 'warning')
-        return redirect(url_for('student.register_exam', token=token))
+        return redirect(url_for('student.register_exam', exam_code=exam.exam_code))
 
     student = Student.query.get_or_404(student_id)
     
     if student.exam_id != exam.id:
         flash('Invalid session token for this exam.', 'danger')
-        return redirect(url_for('student.register_exam', token=token))
+        return redirect(url_for('student.register_exam', exam_code=exam.exam_code))
 
     # Check if already submitted
     if student.submitted_at or Result.query.filter_by(student_id=student.id).first():
@@ -138,7 +139,7 @@ def take_exam(token):
 
 @exam_bp.route('/exam/<token>/save-answer', methods=['POST'])
 def save_answer(token):
-    exam = Exam.query.filter_by(exam_token=token).first_or_404()
+    exam = Exam.query.filter((Exam.exam_code == token) | (Exam.exam_token == token)).first_or_404()
     student_id = session.get('student_id')
 
     if not student_id:
@@ -174,12 +175,12 @@ def save_answer(token):
 
 @exam_bp.route('/exam/<token>/submit', methods=['POST'])
 def submit_exam(token):
-    exam = Exam.query.filter_by(exam_token=token).first_or_404()
+    exam = Exam.query.filter((Exam.exam_code == token) | (Exam.exam_token == token)).first_or_404()
     student_id = session.get('student_id')
 
     if not student_id:
         flash('Session expired. Could not complete submission.', 'danger')
-        return redirect(url_for('student.register_exam', token=token))
+        return redirect(url_for('student.register_exam', exam_code=exam.exam_code))
 
     student = Student.query.get_or_404(student_id)
 
@@ -212,7 +213,8 @@ def submit_exam(token):
 
 
 @exam_bp.route('/exam/result/<int:student_id>')
-def student_result(student_id):
+@exam_bp.route('/exam/<exam_code>/result/<int:student_id>')
+def student_result(student_id, exam_code=None):
     student = Student.query.get_or_404(student_id)
     result = Result.query.filter_by(student_id=student.id).first_or_404()
     exam = Exam.query.get(student.exam_id)

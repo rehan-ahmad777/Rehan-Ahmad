@@ -9,117 +9,164 @@
         <div>
             <span class="badge bg-primary-soft text-primary px-3 py-1 rounded-pill mb-2">Teacher Workspace</span>
             <h2 class="fw-bold text-dark mb-0">Welcome, {{ current_user.name }}</h2>
-            <p class="text-secondary mb-0">Select a subject to create a randomized fixed exam paper for your students.</p>
+            <p class="text-secondary mb-0">Create new exams, manage active tests, and track student results.</p>
         </div>
-        <div class="mt-3 mt-md-0 d-flex gap-2">
+        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+            <a href="#createExamSection" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-circle me-1"></i> Create New Exam
+            </a>
             <a href="{{ url_for('teacher.results') }}" class="btn btn-outline-primary rounded-pill px-4">
-                <i class="bi bi-bar-chart-line me-1"></i> Class Results Dashboard
+                <i class="bi bi-bar-chart-line me-1"></i> Student Results
             </a>
         </div>
     </div>
 
-    <!-- 4 Subject Cards Section -->
-    <h4 class="fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i> Select Subject for Exam Creation</h4>
-    <div class="row g-4 mb-5">
-        {% for card in subject_cards %}
-            <div class="col-sm-6 col-lg-3">
-                <div class="card subject-card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
-                    {% if card.name == 'Grammar' %}
-                        <div class="card-gradient-bar bg-gradient-blue"></div>
-                    {% elif card.name == 'Physics' %}
-                        <div class="card-gradient-bar bg-gradient-purple"></div>
-                    {% elif card.name == 'Chemistry' %}
-                        <div class="card-gradient-bar bg-gradient-green"></div>
-                    {% else %}
-                        <div class="card-gradient-bar bg-gradient-orange"></div>
-                    {% endif %}
+    <!-- Quick Navigation / My Exams Tabs -->
+    <ul class="nav nav-pills mb-4 gap-2" id="dashboardTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active rounded-pill fw-semibold" id="create-tab" data-bs-toggle="pill" href="#createExamSection" role="tab">
+                <i class="bi bi-file-earmark-plus me-1"></i> Create Exam
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill fw-semibold" id="myexams-tab" data-bs-toggle="pill" href="#myExamsSection" role="tab">
+                <i class="bi bi-journal-text me-1"></i> My Exams ({{ total_exams }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link rounded-pill fw-semibold" href="{{ url_for('teacher.results') }}">
+                <i class="bi bi-trophy me-1"></i> Student Results
+            </a>
+        </li>
+    </ul>
 
-                    <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
-                        <div>
-                            <div class="subject-icon-box mx-auto mb-3">
-                                {% if card.name == 'Grammar' %}
-                                    <i class="bi bi-type-h1 text-blue fs-1"></i>
-                                {% elif card.name == 'Physics' %}
-                                    <i class="bi bi-lightning-charge-fill text-purple fs-1"></i>
-                                {% elif card.name == 'Chemistry' %}
-                                    <i class="bi bi-flower3 text-green fs-1"></i>
-                                {% else %}
-                                    <i class="bi bi-calculator-fill text-orange fs-1"></i>
-                                {% endif %}
-                            </div>
+    <div class="tab-content" id="dashboardTabContent">
+        <!-- 4 Subject Cards Section for Create Exam -->
+        <div class="tab-pane fade show active" id="createExamSection" role="tabpanel">
+            <h4 class="fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i> Select Subject to Create Exam</h4>
+            <div class="row g-4 mb-5">
+                {% for card in subject_cards %}
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card subject-card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+                            {% if card.name == 'Grammar' %}
+                                <div class="card-gradient-bar bg-gradient-blue"></div>
+                            {% elif card.name == 'Physics' %}
+                                <div class="card-gradient-bar bg-gradient-purple"></div>
+                            {% elif card.name == 'Chemistry' %}
+                                <div class="card-gradient-bar bg-gradient-green"></div>
+                            {% else %}
+                                <div class="card-gradient-bar bg-gradient-orange"></div>
+                            {% endif %}
 
-                            <h4 class="fw-bold text-uppercase tracking-wider mb-2">{{ card.name }}</h4>
-                            <div class="badge bg-light text-dark border px-3 py-2 rounded-pill fs-7 mb-4">
-                                <i class="bi bi-database me-1 text-primary"></i> <strong>{{ card.question_count }}</strong> MCQs Available
+                            <div class="card-body p-4 text-center d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="subject-icon-box mx-auto mb-3">
+                                        {% if card.name == 'Grammar' %}
+                                            <i class="bi bi-type-h1 text-blue fs-1"></i>
+                                        {% elif card.name == 'Physics' %}
+                                            <i class="bi bi-lightning-charge-fill text-purple fs-1"></i>
+                                        {% elif card.name == 'Chemistry' %}
+                                            <i class="bi bi-flower3 text-green fs-1"></i>
+                                        {% else %}
+                                            <i class="bi bi-calculator-fill text-orange fs-1"></i>
+                                        {% endif %}
+                                    </div>
+
+                                    <h4 class="fw-bold text-uppercase tracking-wider mb-2">{{ card.name }}</h4>
+                                    <div class="badge bg-light text-dark border px-3 py-2 rounded-pill fs-7 mb-4">
+                                        <i class="bi bi-database me-1 text-primary"></i> <strong>{{ card.question_count }}</strong> MCQs Available
+                                    </div>
+                                </div>
+
+                                <a href="{{ url_for('teacher.create_exam', subject_id=card.id) }}" class="btn btn-primary btn-gradient w-100 rounded-pill py-2.5 fw-semibold shadow-sm mt-3">
+                                    <i class="bi bi-plus-circle me-1"></i> Create Exam
+                                </a>
                             </div>
                         </div>
-
-                        <a href="{{ url_for('teacher.create_exam', subject_id=card.id) }}" class="btn btn-primary btn-gradient w-100 rounded-pill py-2.5 fw-semibold shadow-sm mt-3">
-                            <i class="bi bi-plus-circle me-1"></i> Create Question Paper
-                        </a>
                     </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- My Exams Section -->
+        <div class="tab-pane fade" id="myExamsSection" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white p-4 border-0 d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-folder-symlink-fill text-primary me-2"></i> My Created Exams ({{ total_exams }})</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if exams %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-secondary fs-7 text-uppercase">
+                                    <tr>
+                                        <th class="ps-4">Exam Code</th>
+                                        <th>Subject</th>
+                                        <th>Questions</th>
+                                        <th>Total Marks</th>
+                                        <th>Duration</th>
+                                        <th>Created Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for exam in exams %}
+                                        <tr>
+                                            <td class="ps-4 fw-bold">
+                                                <span class="badge bg-dark-subtle text-dark px-3 py-2 fs-7 font-monospace">
+                                                    {{ exam.exam_code }}
+                                                </span>
+                                            </td>
+                                            <td><span class="fw-semibold text-dark">{{ exam.subject.name }}</span></td>
+                                            <td><span class="fw-bold text-dark">{{ exam.total_questions }}</span></td>
+                                            <td><span class="fw-bold text-primary">{{ exam.total_marks }}</span></td>
+                                            <td><i class="bi bi-clock me-1 text-muted"></i> {{ exam.duration }} mins</td>
+                                            <td class="text-secondary fs-7">{{ exam.created_at.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                                            <td>
+                                                {% if exam.status == 'active' and not exam.is_expired() %}
+                                                    <span class="badge bg-success-subtle text-success px-3 py-1.5 rounded-pill">
+                                                        <i class="bi bi-check-circle-fill me-1"></i> Active
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger-subtle text-danger px-3 py-1.5 rounded-pill">
+                                                        <i class="bi bi-slash-circle-fill me-1"></i> Disabled
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-wrap gap-1">
+                                                    <a href="{{ url_for('teacher.exam_created', token=exam.exam_token) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fs-7">
+                                                        <i class="bi bi-share me-1"></i> Share
+                                                    </a>
+                                                    <a href="{{ url_for('student.register_exam', exam_code=exam.exam_code) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fs-7">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i> Open Exam
+                                                    </a>
+                                                    <a href="{{ url_for('teacher.results', exam_id=exam.id) }}" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fs-7">
+                                                        <i class="bi bi-journal-check me-1"></i> Results
+                                                    </a>
+                                                    <a href="{{ url_for('teacher.disable_exam', exam_id=exam.id) }}" class="btn btn-sm {% if exam.status == 'active' %}btn-outline-danger{% else %}btn-outline-secondary{% endif %} rounded-pill px-2.5 py-1 fs-7" onclick="return confirm('Are you sure you want to change the status of exam {{ exam.exam_code }}?');">
+                                                        {% if exam.status == 'active' %}
+                                                            <i class="bi bi-slash-circle me-1"></i> Disable
+                                                        {% else %}
+                                                            <i class="bi bi-check-circle me-1"></i> Enable
+                                                        {% endif %}
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-5 text-center text-muted">
+                            <i class="bi bi-card-checklist fs-1 text-secondary opacity-50 d-block mb-3"></i>
+                            <p class="mb-0">No exam papers generated yet. Select a subject above to create your first question paper.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-        {% endfor %}
-    </div>
-
-    <!-- Active Created Exams Section -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-header bg-white p-4 border-0 d-flex align-items-center justify-content-between">
-            <h5 class="fw-bold mb-0"><i class="bi bi-folder-symlink-fill text-primary me-2"></i> Your Generated Question Papers ({{ total_exams }})</h5>
-            <a href="{{ url_for('teacher.results') }}" class="btn btn-sm btn-link text-decoration-none">View All Results &rarr;</a>
-        </div>
-        <div class="card-body p-0">
-            {% if exams %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light text-secondary fs-7 text-uppercase">
-                            <tr>
-                                <th class="ps-4">Exam Code</th>
-                                <th>Subject</th>
-                                <th>Questions / Marks</th>
-                                <th>Duration</th>
-                                <th>Created Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for exam in exams %}
-                                <tr>
-                                    <td class="ps-4 fw-bold">
-                                        <span class="badge bg-dark-subtle text-dark px-3 py-2 fs-7 font-monospace">
-                                            {{ exam.exam_code }}
-                                        </span>
-                                    </td>
-                                    <td><span class="fw-semibold text-dark">{{ exam.subject.name }}</span></td>
-                                    <td>
-                                        <span class="badge bg-info-subtle text-info-emphasis px-3 py-1 rounded-pill">
-                                            {{ exam.total_questions }} Questions ({{ exam.total_marks }} Marks)
-                                        </span>
-                                    </td>
-                                    <td><i class="bi bi-clock me-1 text-muted"></i> {{ exam.duration }} mins</td>
-                                    <td class="text-secondary fs-7">{{ exam.created_at.strftime('%b %d, %Y - %I:%M %p') }}</td>
-                                    <td>
-                                        <div class="d-flex gap-2">
-                                            <a href="{{ url_for('teacher.exam_created', token=exam.exam_token) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                                <i class="bi bi-link-45deg me-1"></i> Exam Link
-                                            </a>
-                                            <a href="{{ url_for('teacher.results', exam_id=exam.id) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
-                                                <i class="bi bi-journal-check me-1"></i> Results
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="p-5 text-center text-muted">
-                    <i class="bi bi-card-checklist fs-1 text-secondary opacity-50 d-block mb-3"></i>
-                    <p class="mb-0">No exam papers generated yet. Select a subject above to create your first question paper.</p>
-                </div>
-            {% endif %}
         </div>
     </div>
 </div>

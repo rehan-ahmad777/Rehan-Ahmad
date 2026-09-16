@@ -35,7 +35,7 @@ def seed_database(app=None):
             print("Default teacher 'T1001' already exists.")
 
         # 2. Seed Subjects
-        subject_names = ['Grammar', 'Physics', 'Chemistry', 'Mathematics']
+        subject_names = ['Grammar', 'Physics', 'Chemistry', 'Maths', 'Mathematics']
         subject_map = {}
         for name in subject_names:
             sub = Subject.query.filter_by(name=name).first()
@@ -234,6 +234,7 @@ def seed_database(app=None):
             'Grammar': generate_grammar_questions,
             'Physics': generate_physics_questions,
             'Chemistry': generate_chemistry_questions,
+            'Maths': generate_math_questions,
             'Mathematics': generate_math_questions
         }
 

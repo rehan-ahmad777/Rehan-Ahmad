@@ -4,17 +4,27 @@ from app.student import student_bp
 from app.models import Exam, Student
 from app.extensions import db
 
+from sqlalchemy import func
+
 @student_bp.route('/')
 def index():
     return render_template('index.html')
 
 
-@student_bp.route('/exam/<token>', methods=['GET', 'POST'])
-def register_exam(token):
-    exam = Exam.query.filter_by(exam_token=token).first_or_404()
+@student_bp.route('/exam/<exam_code>', methods=['GET', 'POST'])
+def register_exam(exam_code):
+    clean_code = (exam_code or '').strip()
+    exam = Exam.query.filter(
+        (func.lower(Exam.exam_code) == clean_code.lower()) |
+        (Exam.exam_code == clean_code) |
+        (Exam.exam_token == clean_code)
+    ).first()
 
-    if exam.is_expired():
-        flash('This exam link has expired or is no longer active.', 'danger')
+    if not exam:
+        return render_template('errors/404.html'), 404
+
+    if exam.status != 'active' or exam.is_expired():
+        flash('This exam is no longer available.', 'danger')
         return render_template('errors/exam_expired.html', exam=exam), 403
 
     if request.method == 'POST':
@@ -51,8 +61,9 @@ def register_exam(token):
 
         # Set active student session
         session['student_id'] = student.id
-        session['exam_token'] = token
+        session['exam_token'] = exam.exam_token
+        session['exam_code'] = exam.exam_code
 
-        return redirect(url_for('exam.take_exam', token=token))
+        return redirect(url_for('exam.take_exam', token=exam.exam_code))
 
     return render_template('student/register.html', exam=exam)
