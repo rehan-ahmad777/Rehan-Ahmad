@@ -1,14 +1,18 @@
+import logging
 from datetime import datetime
 from flask import render_template, redirect, url_for, flash, request, session, jsonify, abort
 from flask_login import current_user
 from app.exam import exam_bp
 from app.models import Exam, ExamQuestion, Question, Student, StudentAnswer, Result
 from app.extensions import db
+from sqlalchemy import func
+
+logger = logging.getLogger(__name__)
 
 def process_and_finalize_submission(student, exam):
     """
     Server-side evaluation logic. Calculates score, saves answers, creates result record,
-    and locks the exam attempt.
+    and locks the exam attempt using snapshot correct_option.
     """
     if student.submitted_at or Result.query.filter_by(student_id=student.id).first():
         return Result.query.filter_by(student_id=student.id).first()
@@ -28,11 +32,12 @@ def process_and_finalize_submission(student, exam):
         ans_record = existing_answers.get(question.id)
         
         selected = ans_record.selected_option if ans_record else None
+        target_correct = eq.get_correct_option()
         
         if not selected or selected not in ['A', 'B', 'C', 'D']:
             unanswered_count += 1
             is_correct = False
-        elif selected == question.correct_option:
+        elif selected == target_correct:
             correct_count += 1
             is_correct = True
         else:
@@ -77,7 +82,19 @@ def process_and_finalize_submission(student, exam):
 @exam_bp.route('/exam/<token>/take')
 @exam_bp.route('/exam/<token>/start')
 def take_exam(token):
-    exam = Exam.query.filter((Exam.exam_code == token) | (Exam.exam_token == token)).first_or_404()
+    clean_token = (token or '').strip()
+    logger.info(f"[EXAM_LOOKUP] take_exam accessed for token/code='{clean_token}'")
+    
+    exam = Exam.query.filter(
+        (func.lower(Exam.exam_code) == clean_token.lower()) |
+        (func.lower(Exam.exam_token) == clean_token.lower())
+    ).first()
+
+    if not exam:
+        logger.warning(f"[EXAM_LOOKUP] FAILED in take_exam: No exam found for token='{clean_token}'")
+        abort(404)
+
+    logger.info(f"[EXAM_LOOKUP] SUCCESS in take_exam: Found Exam ID={exam.id}, Code='{exam.exam_code}'")
     student_id = session.get('student_id')
 
     if not student_id:
@@ -108,7 +125,7 @@ def take_exam(token):
         flash('Time expired! Your exam has been automatically submitted.', 'warning')
         return redirect(url_for('exam.student_result', student_id=student.id))
 
-    # Fetch fixed exam questions in specified order
+    # Fetch fixed exam questions in specified order with snapshot options
     eq_records = ExamQuestion.query.filter_by(exam_id=exam.id).order_by(ExamQuestion.question_order).all()
     questions_data = []
     
@@ -121,10 +138,10 @@ def take_exam(token):
             'order': eq.question_order,
             'id': q.id,
             'text': q.question_text,
-            'option_a': q.option_a,
-            'option_b': q.option_b,
-            'option_c': q.option_c,
-            'option_d': q.option_d,
+            'option_a': eq.get_option_a(),
+            'option_b': eq.get_option_b(),
+            'option_c': eq.get_option_c(),
+            'option_d': eq.get_option_d(),
             'selected': existing_answers.get(q.id)
         })
 
@@ -228,7 +245,7 @@ def student_result(student_id, exam_code=None):
     if not (is_teacher_owner or is_student_session):
         abort(403)
 
-    # Detailed Question Review
+    # Detailed Question Review with snapshot options and correct answer
     eq_records = ExamQuestion.query.filter_by(exam_id=exam.id).order_by(ExamQuestion.question_order).all()
     student_answers = {sa.question_id: sa for sa in StudentAnswer.query.filter_by(student_id=student.id).all()}
 
@@ -237,11 +254,12 @@ def student_result(student_id, exam_code=None):
         q = Question.query.get(eq.question_id)
         sa = student_answers.get(q.id)
         user_choice = sa.selected_option if sa else None
+        target_correct = eq.get_correct_option()
         
         if not user_choice:
             status = 'Unanswered'
             status_class = 'bg-secondary'
-        elif user_choice == q.correct_option:
+        elif user_choice == target_correct:
             status = 'Correct'
             status_class = 'bg-success'
         else:
@@ -251,12 +269,13 @@ def student_result(student_id, exam_code=None):
         question_reviews.append({
             'order': eq.question_order,
             'text': q.question_text,
-            'option_a': q.option_a,
-            'option_b': q.option_b,
-            'option_c': q.option_c,
-            'option_d': q.option_d,
+            'option_a': eq.get_option_a(),
+            'option_b': eq.get_option_b(),
+            'option_c': eq.get_option_c(),
+            'option_d': eq.get_option_d(),
             'user_choice': user_choice,
-            'correct_option': q.correct_option,
+            'correct_option': target_correct,
+            'explanation': q.explanation,
             'status': status,
             'status_class': status_class
         })

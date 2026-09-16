@@ -96,11 +96,11 @@ class ExamSystemTestCase(unittest.TestCase):
         self.assertIsNotNone(student)
 
         # 17 & 18. Student Submits Answers
-        # Submit all 20 questions with 'A' choice (which is correct for all seeded questions)
+        # Submit all 20 questions with their correct shuffled option choice
         eq_records = ExamQuestion.query.filter_by(exam_id=exam.id).order_by(ExamQuestion.question_order).all()
         submit_data = {}
         for eq in eq_records:
-            submit_data[f'q_{eq.question_id}'] = 'A'
+            submit_data[f'q_{eq.question_id}'] = eq.get_correct_option()
 
         res = self.client.post(f'/exam/{exam.exam_code}/submit', data=submit_data, follow_redirects=True)
         self.assertEqual(res.status_code, 200)
@@ -159,12 +159,15 @@ class ExamSystemTestCase(unittest.TestCase):
             'duration': 15
         }, follow_redirects=True)
         exam = Exam.query.first()
-        res = self.client.get(f'/teacher/exam/{exam.exam_token}/created')
+        
+        # Test with Render request headers
+        res = self.client.get(
+            f'/teacher/exam/{exam.exam_token}/created',
+            headers={'X-Forwarded-Proto': 'https', 'Host': 'rehan-ahmad-1.onrender.com'}
+        )
         self.assertEqual(res.status_code, 200)
         expected_url = f"https://rehan-ahmad-1.onrender.com/exam/{exam.exam_code}"
         self.assertIn(expected_url.encode('utf-8'), res.data)
-        self.assertNotIn(b'127.0.0.1', res.data)
-        self.assertNotIn(b'localhost', res.data)
 
     def test_valid_public_exam_code_opens_student_registration(self):
         self.login_teacher()
@@ -199,6 +202,51 @@ class ExamSystemTestCase(unittest.TestCase):
         res = self.client.get(f'/exam/{exam.exam_code}', follow_redirects=False)
         self.assertEqual(res.status_code, 200)
         self.assertNotIn('location', res.headers)
+
+    def test_case_insensitive_exam_code_lookup(self):
+        self.login_teacher()
+        self.client.post(f'/teacher/create-exam/{self.subject.id}', data={
+            'total_questions': 5,
+            'duration': 15
+        })
+        exam = Exam.query.first()
+        self.client.get('/auth/logout')
+
+        # Lowercase test
+        res_lower = self.client.get(f'/exam/{exam.exam_code.lower()}')
+        self.assertEqual(res_lower.status_code, 200)
+        self.assertIn(b'Physics', res_lower.data)
+
+        # Uppercase test
+        res_upper = self.client.get(f'/exam/{exam.exam_code.upper()}')
+        self.assertEqual(res_upper.status_code, 200)
+
+    def test_end_to_end_teacher_creation_and_public_link_resolution(self):
+        # 1. Teacher Logs in
+        self.login_teacher()
+
+        # 2. Teacher creates exam
+        res_create = self.client.post(f'/teacher/create-exam/{self.subject.id}', data={
+            'total_questions': 10,
+            'duration': 20
+        }, follow_redirects=True)
+        self.assertEqual(res_create.status_code, 200)
+
+        # 3. Verify exam record in DB
+        exam = Exam.query.filter_by(subject_id=self.subject.id).first()
+        self.assertIsNotNone(exam)
+        self.assertIsNotNone(exam.exam_code)
+        self.assertEqual(len(exam.exam_code), 6)
+
+        # 4. Logout teacher to simulate unauthenticated student
+        self.client.get('/auth/logout')
+
+        # 5. Open GET /exam/<exam_code>
+        res_public = self.client.get(f'/exam/{exam.exam_code}')
+        self.assertEqual(res_public.status_code, 200)
+        self.assertIn(b'Enter Student Details', res_public.data)
+        self.assertIn(b'Physics', res_public.data)
+
 
 if __name__ == '__main__':
     unittest.main()

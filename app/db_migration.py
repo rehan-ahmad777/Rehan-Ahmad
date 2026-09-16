@@ -16,7 +16,7 @@ def generate_unique_code(existing_codes):
 def init_and_migrate_db(app):
     """
     Ensures all database tables exist and performs safe, non-destructive
-    schema migration to add any missing columns (e.g. exam_code, exam_token)
+    schema migration to add any missing columns (e.g. exam_code, exam_token, explanation, shuffled_option_a)
     to existing production databases (Render PostgreSQL / MySQL / SQLite).
     """
     with app.app_context():
@@ -27,12 +27,38 @@ def init_and_migrate_db(app):
             engine = db.engine
             inspector = inspect(engine)
             existing_tables = inspector.get_table_names()
+            dialect = engine.dialect.name.lower()
+
+            if 'questions' in existing_tables:
+                q_cols = {c['name']: c for c in inspector.get_columns('questions')}
+                if 'explanation' not in q_cols:
+                    with engine.connect() as conn:
+                        conn.execute(text("ALTER TABLE questions ADD COLUMN explanation TEXT"))
+                        if dialect != 'sqlite':
+                            conn.commit()
+                if 'difficulty' not in q_cols:
+                    with engine.connect() as conn:
+                        conn.execute(text("ALTER TABLE questions ADD COLUMN difficulty VARCHAR(20) DEFAULT 'High'"))
+                        if dialect != 'sqlite':
+                            conn.commit()
+
+            if 'exam_questions' in existing_tables:
+                eq_cols = {c['name']: c for c in inspector.get_columns('exam_questions')}
+                for col in ['shuffled_option_a', 'shuffled_option_b', 'shuffled_option_c', 'shuffled_option_d']:
+                    if col not in eq_cols:
+                        with engine.connect() as conn:
+                            conn.execute(text(f"ALTER TABLE exam_questions ADD COLUMN {col} TEXT"))
+                            if dialect != 'sqlite':
+                                conn.commit()
+                if 'correct_option' not in eq_cols:
+                    with engine.connect() as conn:
+                        conn.execute(text("ALTER TABLE exam_questions ADD COLUMN correct_option VARCHAR(1)"))
+                        if dialect != 'sqlite':
+                            conn.commit()
 
             if 'exams' in existing_tables:
                 columns_info = inspector.get_columns('exams')
                 existing_columns = {c['name']: c for c in columns_info}
-
-                dialect = engine.dialect.name.lower()
 
                 # Add exam_code if missing
                 if 'exam_code' not in existing_columns:

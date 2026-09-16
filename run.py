@@ -7,14 +7,14 @@ debug_mode = os.getenv('FLASK_DEBUG', '0') in ('1', 'true', 'True')
 env_name = 'development' if debug_mode else 'production'
 app = create_app(env_name)
 
-# Ensure database tables exist & seed on startup
+# Ensure database tables exist & seed only when DB is empty
 with app.app_context():
     db.create_all()
-    # If no subjects exist, seed initial question bank and teacher
     from app.models.subject import Subject
-    if Subject.query.count() == 0:
-        print("Empty database detected. Running question bank seeder...")
-        seed_database(app=app)
+    from app.models.question import Question
+    if Subject.query.count() == 0 or Question.query.count() == 0:
+        print("Empty database or missing questions detected. Seeding initial 400 question bank...")
+        seed_database(app=app, force_reseed=False)
 
 import socket
 

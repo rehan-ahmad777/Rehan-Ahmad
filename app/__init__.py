@@ -14,8 +14,8 @@ def create_app(config_name=None):
     # Ensure instance directory exists
     os.makedirs(app.instance_path, exist_ok=True)
 
-    # If USE_SQLITE_FALLBACK is enabled, test DB connection and fallback to SQLite if MySQL fails
-    if app.config.get('USE_SQLITE_FALLBACK'):
+    # If USE_SQLITE_FALLBACK is enabled AND no DATABASE_URL is explicitly set, test DB connection and fallback to SQLite if MySQL fails
+    if app.config.get('USE_SQLITE_FALLBACK') and not os.getenv('DATABASE_URL'):
         try:
             from sqlalchemy import create_engine
             db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')

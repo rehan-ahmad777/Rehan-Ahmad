@@ -1,10 +1,12 @@
+import logging
 from datetime import datetime
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, current_app
 from app.student import student_bp
 from app.models import Exam, Student
 from app.extensions import db
-
 from sqlalchemy import func
+
+logger = logging.getLogger(__name__)
 
 @student_bp.route('/')
 def index():
@@ -14,14 +16,18 @@ def index():
 @student_bp.route('/exam/<exam_code>', methods=['GET', 'POST'])
 def register_exam(exam_code):
     clean_code = (exam_code or '').strip()
+    logger.info(f"[EXAM_LOOKUP] Public student exam route accessed for code='{clean_code}'")
+
     exam = Exam.query.filter(
         (func.lower(Exam.exam_code) == clean_code.lower()) |
-        (Exam.exam_code == clean_code) |
-        (Exam.exam_token == clean_code)
+        (func.lower(Exam.exam_token) == clean_code.lower())
     ).first()
 
     if not exam:
+        logger.warning(f"[EXAM_LOOKUP] FAILED: No exam found in database for code='{clean_code}'")
         return render_template('errors/404.html'), 404
+
+    logger.info(f"[EXAM_LOOKUP] SUCCESS: Found Exam ID={exam.id}, Code='{exam.exam_code}', Status='{exam.status}'")
 
     if exam.status != 'active' or exam.is_expired():
         flash('This exam is no longer available.', 'danger')

@@ -51,10 +51,32 @@ class ExamQuestion(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id', ondelete='CASCADE'), nullable=False, index=True)
     question_order = db.Column(db.Integer, nullable=False)
 
+    # Shuffled option snapshot fields
+    shuffled_option_a = db.Column(db.Text, nullable=True)
+    shuffled_option_b = db.Column(db.Text, nullable=True)
+    shuffled_option_c = db.Column(db.Text, nullable=True)
+    shuffled_option_d = db.Column(db.Text, nullable=True)
+    correct_option = db.Column(db.String(1), nullable=True)
+
     __table_args__ = (
         db.UniqueConstraint('exam_id', 'question_id', name='uq_exam_question'),
         db.UniqueConstraint('exam_id', 'question_order', name='uq_exam_question_order'),
     )
+
+    def get_option_a(self):
+        return self.shuffled_option_a if self.shuffled_option_a is not None else (self.question.option_a if self.question else None)
+
+    def get_option_b(self):
+        return self.shuffled_option_b if self.shuffled_option_b is not None else (self.question.option_b if self.question else None)
+
+    def get_option_c(self):
+        return self.shuffled_option_c if self.shuffled_option_c is not None else (self.question.option_c if self.question else None)
+
+    def get_option_d(self):
+        return self.shuffled_option_d if self.shuffled_option_d is not None else (self.question.option_d if self.question else None)
+
+    def get_correct_option(self):
+        return self.correct_option if self.correct_option is not None else (self.question.correct_option if self.question else None)
 
     def __repr__(self):
         return f"<ExamQuestion Exam:{self.exam_id} Q:{self.question_id} Order:{self.question_order}>"

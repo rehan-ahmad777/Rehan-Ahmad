@@ -99,6 +99,7 @@ def create_exam(subject_id):
         
         # Server-side random question selection (Secure & Non-duplicate)
         selected_questions = random.sample(available_questions, total_q)
+        random.shuffle(selected_questions) # Shuffle question display order
         
         exam_code = generate_exam_code()
         exam_token = Exam.generate_token()
@@ -120,12 +121,40 @@ def create_exam(subject_id):
         db.session.add(exam)
         db.session.flush()
 
-        # Fix exam questions order permanently
+        # Fix exam questions order & snapshot shuffled options
         for order, q in enumerate(selected_questions, start=1):
+            # Option Shuffling with dynamic correct_option remapping
+            orig_opts = {
+                'A': q.option_a,
+                'B': q.option_b,
+                'C': q.option_c,
+                'D': q.option_d
+            }
+            correct_text = orig_opts.get(q.correct_option, q.option_a)
+            
+            option_list = [q.option_a, q.option_b, q.option_c, q.option_d]
+            random.shuffle(option_list)
+
+            shuffled_a, shuffled_b, shuffled_c, shuffled_d = option_list
+
+            if shuffled_a == correct_text:
+                remapped_correct = 'A'
+            elif shuffled_b == correct_text:
+                remapped_correct = 'B'
+            elif shuffled_c == correct_text:
+                remapped_correct = 'C'
+            else:
+                remapped_correct = 'D'
+
             eq = ExamQuestion(
                 exam_id=exam.id,
                 question_id=q.id,
-                question_order=order
+                question_order=order,
+                shuffled_option_a=shuffled_a,
+                shuffled_option_b=shuffled_b,
+                shuffled_option_c=shuffled_c,
+                shuffled_option_d=shuffled_d,
+                correct_option=remapped_correct
             )
             db.session.add(eq)
 
@@ -137,12 +166,17 @@ def create_exam(subject_id):
 
 
 def get_public_exam_url(exam_code):
+    """
+    Constructs the official public shareable student URL for the given exam_code.
+    Uses request context dynamically when available so local testing generates local URLs
+    and production generates Render URLs.
+    """
+    if request:
+        scheme = request.headers.get('X-Forwarded-Proto', request.scheme)
+        host = request.host
+        return f"{scheme}://{host}/exam/{exam_code}"
+    
     base_url = current_app.config.get('PUBLIC_URL', 'https://rehan-ahmad-1.onrender.com').rstrip('/')
-    if not base_url or 'localhost' in base_url or '127.0.0.1' in base_url:
-        base_url = 'https://rehan-ahmad-1.onrender.com'
-    if request and 'onrender.com' in request.host:
-        scheme = request.headers.get('X-Forwarded-Proto', 'https')
-        return f"{scheme}://{request.host}/exam/{exam_code}"
     return f"{base_url}/exam/{exam_code}"
 
 @teacher_bp.route('/exam/<token>/created')
