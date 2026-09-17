@@ -9,6 +9,8 @@ from sqlalchemy import func
 logger = logging.getLogger(__name__)
 
 @student_bp.route('/')
+@student_bp.route('/home')
+@student_bp.route('/index')
 def index():
     return render_template('index.html')
 

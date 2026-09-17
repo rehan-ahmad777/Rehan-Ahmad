@@ -59,6 +59,15 @@ class QuizSystemTestCase(unittest.TestCase):
 
         db.session.commit()
 
+    # 0. HOMEPAGE & ROUTING TESTS
+    def test_homepage_route_returns_200_and_contains_portal_title(self):
+        """Verify GET / returns HTTP 200 and displays AI Quiz Portal homepage."""
+        for path in ['/', '/home', '/index']:
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200, f"Path {path} should return HTTP 200")
+            self.assertIn(b'AI Quiz Portal', response.data, f"Path {path} must contain 'AI Quiz Portal'")
+            self.assertIn(b'Next-Gen Examination Portal', response.data)
+
     # 1. AUTHENTICATION TESTS
     def test_teacher_login_success(self):
         response = self.client.post('/auth/login', data={
