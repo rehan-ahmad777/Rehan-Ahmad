@@ -132,10 +132,10 @@ def take_exam(token):
     # Existing answers map
     existing_answers = {sa.question_id: sa.selected_option for sa in StudentAnswer.query.filter_by(student_id=student.id).all()}
 
-    for eq in eq_records:
+    for index, eq in enumerate(eq_records, 1):
         q = Question.query.get(eq.question_id)
         questions_data.append({
-            'order': eq.question_order,
+            'order': index,
             'id': q.id,
             'text': q.question_text,
             'option_a': eq.get_option_a(),
@@ -250,7 +250,7 @@ def student_result(student_id, exam_code=None):
     student_answers = {sa.question_id: sa for sa in StudentAnswer.query.filter_by(student_id=student.id).all()}
 
     question_reviews = []
-    for eq in eq_records:
+    for index, eq in enumerate(eq_records, 1):
         q = Question.query.get(eq.question_id)
         sa = student_answers.get(q.id)
         user_choice = sa.selected_option if sa else None
@@ -267,7 +267,7 @@ def student_result(student_id, exam_code=None):
             status_class = 'bg-danger'
 
         question_reviews.append({
-            'order': eq.question_order,
+            'order': index,
             'text': q.question_text,
             'option_a': eq.get_option_a(),
             'option_b': eq.get_option_b(),

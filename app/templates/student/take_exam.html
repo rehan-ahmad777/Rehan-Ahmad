@@ -41,10 +41,10 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 {% for q in questions %}
-                    <div class="question-card card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white {% if not loop.first %}d-none{% endif %}" id="questionCard_{{ q.order }}" data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                    <div class="question-card card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4 bg-white {% if not loop.first %}d-none{% endif %}" id="questionCard_{{ loop.index }}" data-order="{{ loop.index }}" data-qid="{{ q.id }}">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
                             <span class="badge bg-primary-soft text-primary fs-6 px-3 py-2 rounded-pill fw-bold">
-                                Question {{ q.order }} of {{ questions|length }}
+                                Question {{ loop.index }} of {{ questions|length }}
                             </span>
                             <span class="text-muted fs-7"><i class="bi bi-check-circle me-1 text-success"></i> 1 Mark</span>
                         </div>
@@ -55,7 +55,7 @@
                             <!-- Option A -->
                             <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'A' %}selected-option{% endif %}">
                                 <div class="form-check d-flex align-items-center gap-3 mb-0">
-                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="A" {% if q.selected == 'A' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="A" {% if q.selected == 'A' %}checked{% endif %} data-order="{{ loop.index }}" data-qid="{{ q.id }}">
                                     <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">A</span>
                                     <span class="option-text fs-6 text-dark fw-medium">{{ q.option_a }}</span>
                                 </div>
@@ -64,7 +64,7 @@
                             <!-- Option B -->
                             <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'B' %}selected-option{% endif %}">
                                 <div class="form-check d-flex align-items-center gap-3 mb-0">
-                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="B" {% if q.selected == 'B' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="B" {% if q.selected == 'B' %}checked{% endif %} data-order="{{ loop.index }}" data-qid="{{ q.id }}">
                                     <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">B</span>
                                     <span class="option-text fs-6 text-dark fw-medium">{{ q.option_b }}</span>
                                 </div>
@@ -73,7 +73,7 @@
                             <!-- Option C -->
                             <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'C' %}selected-option{% endif %}">
                                 <div class="form-check d-flex align-items-center gap-3 mb-0">
-                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="C" {% if q.selected == 'C' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="C" {% if q.selected == 'C' %}checked{% endif %} data-order="{{ loop.index }}" data-qid="{{ q.id }}">
                                     <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">C</span>
                                     <span class="option-text fs-6 text-dark fw-medium">{{ q.option_c }}</span>
                                 </div>
@@ -82,7 +82,7 @@
                             <!-- Option D -->
                             <label class="option-tile card border p-3 rounded-3 cursor-pointer transition-all {% if q.selected == 'D' %}selected-option{% endif %}">
                                 <div class="form-check d-flex align-items-center gap-3 mb-0">
-                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="D" {% if q.selected == 'D' %}checked{% endif %} data-order="{{ q.order }}" data-qid="{{ q.id }}">
+                                    <input class="form-check-input flex-shrink-0 option-input" type="radio" name="q_{{ q.id }}" value="D" {% if q.selected == 'D' %}checked{% endif %} data-order="{{ loop.index }}" data-qid="{{ q.id }}">
                                     <span class="option-prefix bg-light border fw-bold px-3 py-1 rounded-2">D</span>
                                     <span class="option-text fs-6 text-dark fw-medium">{{ q.option_d }}</span>
                                 </div>
@@ -91,11 +91,11 @@
 
                         <!-- Action Bar for Previous / Next / Clear -->
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3 border-top">
-                            <button type="button" class="btn btn-outline-secondary px-4 rounded-pill btn-prev" onclick="navigateQuestion({{ q.order - 1 }})" {% if loop.first %}disabled{% endif %}>
+                            <button type="button" class="btn btn-outline-secondary px-4 rounded-pill btn-prev" onclick="navigateQuestion({{ loop.index - 1 }})" {% if loop.first %}disabled{% endif %}>
                                 <i class="bi bi-arrow-left me-1"></i> Previous
                             </button>
 
-                            <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none" onclick="clearSelection({{ q.order }}, {{ q.id }})">
+                            <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none" onclick="clearSelection({{ loop.index }}, {{ q.id }})">
                                 <i class="bi bi-x-circle me-1"></i> Clear Choice
                             </button>
 
@@ -104,7 +104,7 @@
                                     <i class="bi bi-check-all me-1"></i> Submit Exam
                                 </button>
                             {% else %}
-                                <button type="button" class="btn btn-primary px-4 rounded-pill btn-next" onclick="navigateQuestion({{ q.order + 1 }})">
+                                <button type="button" class="btn btn-primary px-4 rounded-pill btn-next" onclick="navigateQuestion({{ loop.index + 1 }})">
                                     Next <i class="bi bi-arrow-right ms-1"></i>
                                 </button>
                             {% endif %}
@@ -127,8 +127,8 @@
 
                 <div class="palette-grid d-grid gap-2 mb-4" style="grid-template-columns: repeat(5, 1fr);">
                     {% for q in questions %}
-                        <button type="button" class="btn palette-btn rounded-3 font-monospace fw-bold {% if q.selected %}btn-success{% else %}btn-outline-secondary{% endif %} {% if loop.first %}active-current{% endif %}" id="paletteBtn_{{ q.order }}" onclick="navigateQuestion({{ q.order }})">
-                            {{ q.order }}
+                        <button type="button" class="btn palette-btn rounded-3 font-monospace fw-bold {% if q.selected %}btn-success{% else %}btn-outline-secondary{% endif %} {% if loop.first %}active-current{% endif %}" id="paletteBtn_{{ loop.index }}" onclick="navigateQuestion({{ loop.index }})">
+                            {{ loop.index }}
                         </button>
                     {% endfor %}
                 </div>

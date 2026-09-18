@@ -247,6 +247,65 @@ class ExamSystemTestCase(unittest.TestCase):
         self.assertIn(b'Enter Student Details', res_public.data)
         self.assertIn(b'Physics', res_public.data)
 
+    def test_sequential_question_numbering_display(self):
+        """
+        Verify that even if database Question IDs are non-sequential (e.g. 89, 45, 77),
+        the student display shows sequential 1, 2, 3, 4, 5... and 'Question 1 of N',
+        while retaining internal database IDs for form/AJAX submission payload.
+        """
+        q_ids = [890, 450, 770, 120, 980]
+        for qid in q_ids:
+            q = Question(
+                id=qid,
+                subject_id=self.subject.id,
+                question_text=f"Question text for DB ID {qid}?",
+                option_a="A",
+                option_b="B",
+                option_c="C",
+                option_d="D",
+                correct_option="A"
+            )
+            db.session.add(q)
+        db.session.commit()
+
+        exam = Exam(
+            subject_id=self.subject.id,
+            teacher_id=self.teacher.id,
+            exam_code='SEQNUM',
+            exam_token='seq-num-token-123',
+            total_questions=5,
+            total_marks=5,
+            duration=15,
+            status='active'
+        )
+        db.session.add(exam)
+        db.session.flush()
+
+        for order, qid in enumerate(q_ids, 1):
+            eq = ExamQuestion(exam_id=exam.id, question_id=qid, question_order=order)
+            db.session.add(eq)
+        db.session.commit()
+
+        res_reg = self.client.post(f'/exam/{exam.exam_code}', data={
+            'name': 'Test Student',
+            'roll_number': 'ROLL-999',
+            'branch': 'CSE'
+        }, follow_redirects=True)
+        self.assertEqual(res_reg.status_code, 200)
+
+        html = res_reg.data.decode('utf-8')
+
+        for idx in range(1, 6):
+            self.assertIn(f'Question {idx} of 5', html)
+            self.assertIn(f'id="paletteBtn_{idx}"', html)
+
+        self.assertNotIn('Q890', html)
+        self.assertNotIn('Q450', html)
+        self.assertNotIn('Q770', html)
+
+        self.assertIn('data-qid="890"', html)
+        self.assertIn('name="q_890"', html)
+
 
 if __name__ == '__main__':
     unittest.main()
